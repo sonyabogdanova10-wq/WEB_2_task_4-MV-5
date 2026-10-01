@@ -4,10 +4,11 @@ export class Dashboard {
     this.widgets = new Map();
   }
 
-  async addWidget(widgetInstance) {  // ← Добавили async
+  async addWidget(widgetInstance) {
     if (this.widgets.has(widgetInstance.id)) return;
     
-    const widgetEl = await widgetInstance.render();  // ← Добавили await
+    // Ждём, пока асинхронный render() вернёт готовый DOM-элемент
+    const widgetEl = await widgetInstance.render();
     this.container.appendChild(widgetEl);
     this.widgets.set(widgetInstance.id, widgetInstance);
   }
