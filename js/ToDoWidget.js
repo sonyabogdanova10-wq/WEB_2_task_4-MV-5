@@ -1,26 +1,64 @@
-import { Dashboard } from './js/Dashboard.js';
-import { ToDoWidget } from './js/ToDoWidget.js';
-import { RandomPokemonWidget } from './js/RandomPokemonWidget.js';
-import { PokemonSearchWidget } from './js/PokemonSearchWidget.js';
+import { UIComponent } from './UIComponent.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const dashboard = new Dashboard('dashboard-container');
-  let widgetCounter = 0;
-  const generateId = (prefix) => `${prefix}-${++widgetCounter}`;
+export class ToDoWidget extends UIComponent {
+  constructor(id) {
+    super('✅ Список дел', id);
+  }
 
-  document.getElementById('add-todo').addEventListener('click', () => {
-    dashboard.addWidget(new ToDoWidget(generateId('todo')));
-  });
+  render() {
+    const widgetEl = super.render();
 
-  document.getElementById('add-random').addEventListener('click', () => {
-    dashboard.addWidget(new RandomPokemonWidget(generateId('random')));
-  });
+    const controls = document.createElement('div');
+    controls.className = 'widget-controls';
 
-  document.getElementById('add-search').addEventListener('click', () => {
-    dashboard.addWidget(new PokemonSearchWidget(generateId('search')));
-  });
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Новая задача...';
+    input.setAttribute('aria-label', 'Текст задачи');
 
-  // Демонстрация при старте
-  dashboard.addWidget(new RandomPokemonWidget(generateId('random')));
-  dashboard.addWidget(new PokemonSearchWidget(generateId('search')));
-});
+    const btn = document.createElement('button');
+    btn.textContent = 'Добавить';
+    btn.className = 'btn';
+
+    const list = document.createElement('ul');
+    list.className = 'todo-list';
+
+    const addItem = () => {
+      const text = input.value.trim();
+      if (!text) return;
+
+      const li = document.createElement('li');
+      li.className = 'todo-item';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.addEventListener('change', () => {
+        li.classList.toggle('completed', checkbox.checked);
+      }, { signal: this.abortController.signal });
+
+      const span = document.createElement('span');
+      span.textContent = text;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '×';
+      deleteBtn.className = 'todo-delete';
+      deleteBtn.addEventListener('click', () => {
+        li.remove();
+      }, { signal: this.abortController.signal });
+
+      li.append(checkbox, span, deleteBtn);
+      list.appendChild(li);
+      input.value = '';
+    };
+
+    btn.addEventListener('click', addItem, { signal: this.abortController.signal });
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addItem();
+    }, { signal: this.abortController.signal });
+
+    controls.append(input, btn);
+    widgetEl.append(controls, list);
+
+    return widgetEl;
+  }
+}
